@@ -15,14 +15,22 @@ data class OptionEntity(
     @Column(name = "text", nullable = false)
     var text: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id", nullable = false)
-    var question: QuestionEntity
+    @Column(name = "question_id", nullable = false)
+    var questionId: Long? = null
 ) {
     fun toDomain(): Option {
         return Option(
             optionId = this.optionId,
             text = this.text
         )
+    }
+
+    companion object {
+        fun fromDomain(option: Option): OptionEntity {
+            return OptionEntity(
+                option.optionId,
+                option.text,
+            )
+        }
     }
 }

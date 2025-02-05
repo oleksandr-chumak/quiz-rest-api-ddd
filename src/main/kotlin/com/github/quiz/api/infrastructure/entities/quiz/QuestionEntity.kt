@@ -14,16 +14,16 @@ data class QuestionEntity(
     @Column(name = "text", nullable = false)
     var text: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
-    var quiz: QuizEntity,
-
-    @OneToMany(mappedBy = "question", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "question_id")
     val options: MutableList<OptionEntity> = mutableListOf(),
 
     @OneToOne(cascade = [CascadeType.ALL])
     @JoinColumn(name = "option_id", referencedColumnName = "question_id")
-    var correctAnswer: OptionEntity? = null
+    var correctAnswer: OptionEntity? = null,
+
+    @Column(name = "quiz_id", nullable = false)
+    val quizId: Long? = null,
 ) {
     fun toDomain(): Question {
         return Question(
@@ -32,5 +32,16 @@ data class QuestionEntity(
             options = this.options.map { it.toDomain() },
             correctAnswer = this.correctAnswer?.toDomain()
         )
+    }
+
+    companion object {
+        fun fromDomain(question: Question): QuestionEntity {
+            return QuestionEntity(
+                question.questionId,
+                question.text,
+                options = question.options.map { OptionEntity.fromDomain(it) }.toMutableList(),
+                correctAnswer =  question.correctAnswer?.let{ OptionEntity.fromDomain(it) }
+            )
+        }
     }
 }

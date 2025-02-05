@@ -18,33 +18,26 @@ class QuizRepositoryImpl(
     @PersistenceContext private val entityManager: EntityManager
 ) : QuizRepository {
 
-    override fun createQuiz(userId: Long, name: String): Quiz {
-        val user = entityManager.find(UserEntity::class.java, userId)
-            ?: throw IllegalArgumentException("User not found with id: $userId")
-        val quiz = QuizEntity(name = name, createdBy = user)
+    override fun createQuiz(user: User, name: String): Quiz {
+        val managedUserEntity = entityManager.merge(UserEntity.fromDomain(user))
+        val quiz = QuizEntity(name = name, createdBy = managedUserEntity)
         entityManager.persist(quiz)
         return quiz.toDomain()
     }
 
-    override fun createQuestion(quizId: Long, text: String): Question {
-        val quiz = entityManager.find(QuizEntity::class.java, quizId)
-            ?: throw IllegalArgumentException("Quiz not found with id: $quizId")
+    override fun createQuestion(quiz: Quiz, text: String): Question {
         val question = QuestionEntity(
             text = text,
-            quiz = quiz,
             options = mutableListOf(),
-            correctAnswer = null
+            correctAnswer = null,
+            quizId = quiz.quizId
         )
-        quiz.questions.add(question)
         entityManager.persist(question)
         return question.toDomain()
     }
 
-    override fun createOption(questionId: Long, text: String): Option {
-        val question = entityManager.find(QuestionEntity::class.java, questionId)
-            ?: throw IllegalArgumentException("Question not found with id: $questionId")
-        val option = OptionEntity(text = text, question = question)
-        question.options.add(option)
+    override fun createOption(question: Question, text: String): Option {
+        val option = OptionEntity(text = text, questionId = question.questionId)
         entityManager.persist(option)
         return option.toDomain()
     }
@@ -54,8 +47,8 @@ class QuizRepositoryImpl(
         return quiz?.toDomain()
     }
 
-    override fun findQuizzesCreateByUser(user: User): List<Quiz> {
-        val userEntity = entityManager.getReference(UserEntity::class.java, user.userId)
+    override fun findQuizzesCreatedByUser(userId: Long): List<Quiz> {
+        val userEntity = entityManager.getReference(UserEntity::class.java, userId)
         val query = entityManager.createQuery(
             "SELECT q FROM QuizEntity q WHERE q.createdBy = :user",
             QuizEntity::class.java
@@ -64,13 +57,8 @@ class QuizRepositoryImpl(
         return query.resultList.map { it.toDomain() }
     }
 
-    override fun findQuestionsByQuizId(quizId: Long): List<Question> {
-        val query = entityManager.createQuery(
-            "SELECT DISTINCT q FROM QuestionEntity q LEFT JOIN FETCH q.options LEFT JOIN FETCH q.correctAnswer WHERE q.quiz.quizId = :quizId",
-            QuestionEntity::class.java
-        )
-        query.setParameter("quizId", quizId)
-        return query.resultList.map { it.toDomain() }
+    override fun findQuestionsAssociatedWithQuiz(quizId: Long): List<Question> {
+        TODO("Implement questions of questions associated with quiz")
     }
 
     override fun updateQuiz(quizId: Long, name: String): Quiz {
@@ -81,22 +69,7 @@ class QuizRepositoryImpl(
     }
 
     override fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long?): Question {
-        val question = entityManager.find(QuestionEntity::class.java, questionId)
-            ?: throw IllegalArgumentException("Question not found with id: $questionId")
-        question.text = text
-
-        question.correctAnswer = if (correctAnswerId != null) {
-            val option = entityManager.find(OptionEntity::class.java, correctAnswerId)
-                ?: throw IllegalArgumentException("Option not found with id: $correctAnswerId")
-            if (option.question.questionId != questionId) {
-                throw IllegalArgumentException("Option does not belong to the question")
-            }
-            option
-        } else {
-            null
-        }
-
-        return question.toDomain()
+        TODO("Implement questions of questions associated with quiz")
     }
 
     override fun updateOption(optionId: Long, text: String): Option {

@@ -9,15 +9,15 @@ interface QuizRepository {
 
     // create operations
 
-    fun createQuiz(userId: Long, name: String ): Quiz
-    fun createQuestion(quizId: Long, text: String): Question
-    fun createOption(questionId: Long, text: String): Option
+    fun createQuiz(user: User, name: String ): Quiz
+    fun createQuestion(quiz: Quiz, text: String): Question
+    fun createOption(question: Question, text: String): Option
 
     // read operations
 
     fun findQuizById(id: Long): Quiz?
-    fun findQuizzesCreateByUser(user: User): List<Quiz>
-    fun findQuestionsByQuizId(quizId: Long): List<Question>
+    fun findQuizzesCreatedByUser(userId: Long): List<Quiz>
+    fun findQuestionsAssociatedWithQuiz(quizId: Long): List<Question>
 
     // update operations
 

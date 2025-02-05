@@ -16,10 +16,11 @@ data class QuizEntity(
     @Column(name = "name")
     var name: String,
 
-    @OneToMany(mappedBy = "quiz", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "quiz_id")
     val questions: MutableList<QuestionEntity> = mutableListOf(),
 
-    @OneToOne(cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     val createdBy: UserEntity,
 ) {
@@ -30,5 +31,17 @@ data class QuizEntity(
             createdBy = this.createdBy.toDomain(),
             questions = this.questions.map { it.toDomain() }
         )
+    }
+
+
+    companion object {
+        fun fromDomain(quiz: Quiz): QuizEntity {
+            return QuizEntity(
+                quizId = quiz.quizId,
+                name = quiz.name,
+                questions = quiz.questions.map { QuestionEntity.fromDomain(it) }.toMutableList(),
+                createdBy = UserEntity.fromDomain(quiz.createdBy)
+            )
+        }
     }
 }
