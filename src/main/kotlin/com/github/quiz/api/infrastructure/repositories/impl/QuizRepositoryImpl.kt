@@ -1,6 +1,5 @@
 package com.github.quiz.api.infrastructure.repositories.impl
 
-import com.github.quiz.api.domain.models.User
 import com.github.quiz.api.domain.models.quiz.Option
 import com.github.quiz.api.domain.models.quiz.Question
 import com.github.quiz.api.domain.models.quiz.Quiz
@@ -10,44 +9,50 @@ import com.github.quiz.api.infrastructure.entities.quiz.QuestionEntity
 import com.github.quiz.api.infrastructure.entities.quiz.QuizEntity
 import com.github.quiz.api.infrastructure.repositories.QuizRepository
 import jakarta.persistence.EntityManager
+import jakarta.persistence.EntityNotFoundException
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
+import java.util.UUID
 
 @Repository
-class QuizRepositoryImpl(
+class QuizRepositoryImpl (
     @PersistenceContext private val entityManager: EntityManager
 ) : QuizRepository {
 
-    override fun createQuiz(user: User, name: String): Quiz {
-        val managedUserEntity = entityManager.merge(UserEntity.fromDomain(user))
-        val quiz = QuizEntity(name = name, createdBy = managedUserEntity)
-        entityManager.persist(quiz)
-        return quiz.toDomain()
+    override fun createQuiz(quiz: Quiz): Quiz {
+        val managedUserEntity = entityManager.merge(UserEntity.fromDomain(quiz.createdBy))
+        val quizEntity = QuizEntity(quizId = quiz.quizId, quiz.name, createdBy = managedUserEntity)
+        entityManager.persist(quizEntity)
+        return quizEntity.toDomain()
     }
 
-    override fun createQuestion(quiz: Quiz, text: String): Question {
-        val question = QuestionEntity(
-            text = text,
+    override fun createQuestion(quiz: Quiz, question: Question): Question {
+        val questionEntity = QuestionEntity(
+            questionId = question.questionId,
+            text = question.text,
             options = mutableListOf(),
             correctAnswer = null,
             quizId = quiz.quizId
         )
-        entityManager.persist(question)
-        return question.toDomain()
+        entityManager.persist(questionEntity)
+        return questionEntity.toDomain()
     }
 
-    override fun createOption(question: Question, text: String): Option {
-        val option = OptionEntity(text = text, questionId = question.questionId)
-        entityManager.persist(option)
-        return option.toDomain()
+    override fun createOption(question: Question, option: Option): Option {
+        val optionEntity = OptionEntity(
+            optionId = option.optionId,
+            text = option.text,
+            questionId = question.questionId)
+        entityManager.persist(optionEntity)
+        return optionEntity.toDomain()
     }
 
-    override fun findQuizById(id: Long): Quiz? {
+    override fun findQuizById(id: UUID): Quiz? {
         val quiz = entityManager.find(QuizEntity::class.java, id)
         return quiz?.toDomain()
     }
 
-    override fun findQuizzesCreatedByUser(userId: Long): List<Quiz> {
+    override fun findQuizzesCreatedByUser(userId: UUID): List<Quiz> {
         val userEntity = entityManager.getReference(UserEntity::class.java, userId)
         val query = entityManager.createQuery(
             "SELECT q FROM QuizEntity q WHERE q.createdBy = :user",
@@ -57,7 +62,7 @@ class QuizRepositoryImpl(
         return query.resultList.map { it.toDomain() }
     }
 
-    override fun findQuestionsAssociatedWithQuiz(quizId: Long): List<Question> {
+    override fun findQuestionsAssociatedWithQuiz(quizId: UUID): List<Question> {
         val query = entityManager.createQuery(
             "SELECT q FROM QuestionEntity q WHERE q.quizId = :quizId",
             QuestionEntity::class.java
@@ -66,38 +71,41 @@ class QuizRepositoryImpl(
         return query.resultList.map { it.toDomain() }
     }
 
-    override fun updateQuiz(quizId: Long, name: String): Quiz? {
-        val quiz = entityManager.find(QuizEntity::class.java, quizId) ?: return null
-        quiz.name = name
-        return quiz.toDomain()
+    override fun updateQuiz(quiz: Quiz): Quiz {
+        val quizEntity = entityManager.find(QuizEntity::class.java, quiz.quizId)
+            ?: throw EntityNotFoundException("QuizEntity ${quiz.quizId} not found")
+        quiz.name = quizEntity.name
+        return quizEntity.toDomain()
     }
 
-    override fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long?): Question?     {
-        val question = entityManager.find(QuestionEntity::class.java, questionId) ?: return null
-        question.text = text
-        question.correctAnswer = correctAnswerId?.let { entityManager.getReference(OptionEntity::class.java, it)}
-        return question.toDomain()
+    override fun updateQuestion(question: Question): Question     {
+        val questionEntity = entityManager.find(QuestionEntity::class.java, question.questionId)
+            ?: throw EntityNotFoundException("QuestionEntity ${question.questionId} not found")
+        questionEntity.text = question.text
+        questionEntity.correctAnswer = question.correctAnswer?.let { OptionEntity.fromDomain(it) }
+        return questionEntity.toDomain()
     }
 
-    override fun updateOption(optionId: Long, text: String): Option? {
-        val option = entityManager.find(OptionEntity::class.java, optionId) ?: return null
-        option.text = text
-        return option.toDomain()
+    override fun updateOption(option: Option): Option {
+        val optionEntity = entityManager.find(OptionEntity::class.java, option.optionId)
+            ?: throw EntityNotFoundException("OptionEntity ${option.optionId} not found")
+        optionEntity.text = option.text
+        return optionEntity.toDomain()
     }
 
-    override fun deleteQuiz(quizId: Long): Boolean {
+    override fun deleteQuiz(quizId: UUID): Boolean {
         val quiz = entityManager.find(QuizEntity::class.java, quizId) ?: return false
         entityManager.remove(quiz)
         return true
     }
 
-    override fun deleteOption(optionId: Long): Boolean {
+    override fun deleteOption(optionId: UUID): Boolean {
         val option = entityManager.find(OptionEntity::class.java, optionId) ?: return false
         entityManager.remove(option)
         return true
     }
 
-    override fun deleteQuestion(questionId: Long): Boolean {
+    override fun deleteQuestion(questionId: UUID): Boolean {
         val question = entityManager.find(QuestionEntity::class.java, questionId) ?: return false
         entityManager.remove(question)
         return true

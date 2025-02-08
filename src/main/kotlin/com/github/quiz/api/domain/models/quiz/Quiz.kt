@@ -1,6 +1,7 @@
 package com.github.quiz.api.domain.models.quiz
 
 import com.github.quiz.api.domain.models.User
+import java.util.*
 
 /**
  * Represents a quiz with a collection of questions.
@@ -9,7 +10,7 @@ import com.github.quiz.api.domain.models.User
  * @property name The name of the quiz.
  */
 data class Quiz(
-    val quizId: Long,
+    val quizId: UUID,
     var name: String,
     val createdBy: User,
     val questions: List<Question> = mutableListOf()

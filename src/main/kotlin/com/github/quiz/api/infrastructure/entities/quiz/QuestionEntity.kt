@@ -2,14 +2,14 @@ package com.github.quiz.api.infrastructure.entities.quiz
 
 import com.github.quiz.api.domain.models.quiz.Question
 import jakarta.persistence.*
+import java.util.UUID
 
 @Entity
 @Table(name = "questions")
 data class QuestionEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "question_id")
-    val questionId: Long = 0,
+    @Column(name = "question_id", columnDefinition = "UUID")
+    val questionId: UUID,
 
     @Column(name = "text", nullable = false)
     var text: String,
@@ -19,11 +19,11 @@ data class QuestionEntity(
     val options: MutableList<OptionEntity> = mutableListOf(),
 
     @OneToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "option_id", referencedColumnName = "question_id", nullable = true)
+    @JoinColumn(name = "correct_option_id", referencedColumnName = "option_id", nullable = true)
     var correctAnswer: OptionEntity? = null,
 
-    @Column(name = "quiz_id", nullable = false)
-    val quizId: Long? = null,
+    @Column(name = "quiz_id", nullable = false, columnDefinition = "UUID")
+    val quizId: UUID? = null,
 ) {
     fun toDomain(): Question {
         return Question(

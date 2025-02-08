@@ -3,14 +3,14 @@ package com.github.quiz.api.infrastructure.entities
 import com.github.quiz.api.domain.models.User
 import com.github.quiz.api.infrastructure.entities.quiz.QuizEntity
 import jakarta.persistence.*
+import java.util.UUID
 
 @Entity
 @Table(name = "users")
 class UserEntity (
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
-    var userId: Long = 0,
+    @Column(name = "user_id", columnDefinition = "UUID")
+    var userId: UUID,
 
     @OneToMany(
         mappedBy = "createdBy",

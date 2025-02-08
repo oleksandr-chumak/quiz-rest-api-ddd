@@ -2,21 +2,21 @@ package com.github.quiz.api.infrastructure.entities.quiz
 
 import com.github.quiz.api.domain.models.quiz.Option
 import jakarta.persistence.*
+import java.util.UUID
 
 
 @Entity
 @Table(name = "options")
 data class OptionEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "option_id")
-    val optionId: Long = 0,
+    @Column(name = "option_id", columnDefinition = "UUID")
+    val optionId: UUID,
 
     @Column(name = "text", nullable = false)
     var text: String,
 
-    @Column(name = "question_id", nullable = false)
-    var questionId: Long? = null
+    @Column(name = "question_id", nullable = false, columnDefinition = "UUID")
+    var questionId: UUID? = null
 ) {
     fun toDomain(): Option {
         return Option(

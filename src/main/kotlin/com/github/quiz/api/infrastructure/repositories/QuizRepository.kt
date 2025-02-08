@@ -1,33 +1,33 @@
 package com.github.quiz.api.infrastructure.repositories
 
-import com.github.quiz.api.domain.models.User
 import com.github.quiz.api.domain.models.quiz.Option
 import com.github.quiz.api.domain.models.quiz.Question
 import com.github.quiz.api.domain.models.quiz.Quiz
+import java.util.*
 
 interface QuizRepository {
 
     // create operations
 
-    fun createQuiz(user: User, name: String ): Quiz
-    fun createQuestion(quiz: Quiz, text: String): Question
-    fun createOption(question: Question, text: String): Option
+    fun createQuiz(quiz: Quiz): Quiz
+    fun createQuestion(quiz: Quiz, question: Question): Question
+    fun createOption(question: Question, option: Option): Option
 
     // read operations
 
-    fun findQuizById(id: Long): Quiz?
-    fun findQuizzesCreatedByUser(userId: Long): List<Quiz>
-    fun findQuestionsAssociatedWithQuiz(quizId: Long): List<Question>
+    fun findQuizById(id: UUID): Quiz?
+    fun findQuizzesCreatedByUser(userId: UUID): List<Quiz>
+    fun findQuestionsAssociatedWithQuiz(quizId: UUID): List<Question>
 
     // update operations
 
-    fun updateQuiz(quizId: Long, name: String): Quiz?
-    fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long? ): Question?
-    fun updateOption(optionId: Long, text: String): Option?
+    fun updateQuiz(quiz: Quiz): Quiz
+    fun updateQuestion(question: Question): Question
+    fun updateOption(option: Option): Option
 
     // delete operations
 
-    fun deleteQuiz(quizId: Long): Boolean
-    fun deleteOption(optionId: Long): Boolean
-    fun deleteQuestion(questionId: Long): Boolean
+    fun deleteQuiz(quizId: UUID): Boolean
+    fun deleteOption(optionId: UUID): Boolean
+    fun deleteQuestion(questionId: UUID): Boolean
 }

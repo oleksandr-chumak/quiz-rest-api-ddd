@@ -4,14 +4,14 @@ import com.github.quiz.api.domain.models.User
 import com.github.quiz.api.domain.models.quiz.Quiz
 import com.github.quiz.api.infrastructure.entities.UserEntity
 import jakarta.persistence.*
+import java.util.UUID
 
 @Entity
 @Table(name = "quizzes")
 data class QuizEntity(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "quiz_id")
-    val quizId: Long = 0,
+    @Column(name = "quiz_id", columnDefinition = "UUID")
+    val quizId: UUID,
 
     @Column(name = "name")
     var name: String,
@@ -32,7 +32,6 @@ data class QuizEntity(
             questions = this.questions.map { it.toDomain() }
         )
     }
-
 
     companion object {
         fun fromDomain(quiz: Quiz): QuizEntity {

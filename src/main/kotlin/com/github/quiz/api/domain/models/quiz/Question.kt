@@ -1,5 +1,7 @@
 package com.github.quiz.api.domain.models.quiz
 
+import java.util.*
+
 /**
  * Represents a question with a collection of options.
  *
@@ -9,7 +11,7 @@ package com.github.quiz.api.domain.models.quiz
  * @property options The list of options for the question.
  */
 data class Question(
-    val questionId: Long,
+    val questionId: UUID,
     val text: String,
     val correctAnswer: Option? = null,
     val options: List<Option> = mutableListOf()

@@ -1,5 +1,8 @@
 package com.github.quiz.api.infrastructure.repositories.impl.integration
 
+import com.github.quiz.api.domain.models.quiz.Option
+import com.github.quiz.api.domain.models.quiz.Question
+import com.github.quiz.api.domain.models.quiz.Quiz
 import com.github.quiz.api.infrastructure.entities.UserEntity
 import com.github.quiz.api.infrastructure.entities.quiz.OptionEntity
 import com.github.quiz.api.infrastructure.entities.quiz.QuestionEntity
@@ -13,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @DataJpaTest
 @Import(QuizRepositoryImpl::class)
@@ -26,7 +30,7 @@ class QuizRepositoryImplIntegrationTest {
     private lateinit var quizRepository: QuizRepositoryImpl
 
     private fun createTestUser(): UserEntity {
-        val user = UserEntity()
+        val user = UserEntity(userId = UUID.randomUUID())
         entityManager.persist(user)
         entityManager.flush()
 
@@ -35,6 +39,7 @@ class QuizRepositoryImplIntegrationTest {
 
     private fun createTestQuiz(user: UserEntity = createTestUser()): QuizEntity {
         val quiz = QuizEntity(
+            quizId = UUID.randomUUID(),
             name = "Test Name",
             questions = mutableListOf(),
             createdBy = user
@@ -47,6 +52,7 @@ class QuizRepositoryImplIntegrationTest {
 
     private fun createTestQuestion(quiz: QuizEntity = createTestQuiz()): QuestionEntity {
         val question = QuestionEntity(
+            questionId = UUID.randomUUID(),
             text = "Who is the president of the United States?",
             options = mutableListOf(),
             correctAnswer = null,
@@ -60,6 +66,7 @@ class QuizRepositoryImplIntegrationTest {
 
     private fun createTestOption(question: QuestionEntity = createTestQuestion()): OptionEntity {
         val option = OptionEntity(
+            optionId = UUID.randomUUID(),
             text = "Test Option",
             questionId = question.questionId
         )
@@ -78,27 +85,43 @@ class QuizRepositoryImplIntegrationTest {
     fun `should create a new quiz`() {
         val user = createTestUser()
 
-        val quiz = quizRepository.createQuiz(user.toDomain(), "New Quiz")
-        assertThat(quiz).isNotNull
-        assertThat(quiz.createdBy.userId).isEqualTo(user.userId)
-        assertThat(quiz.name).isEqualTo("New Quiz")
+        val testQuiz = Quiz(
+            quizId = UUID.randomUUID(),
+            name = "Test Name",
+            createdBy = user.toDomain(),
+        )
+
+        val createdQuiz = quizRepository.createQuiz(testQuiz)
+        assertThat(createdQuiz).isNotNull
+        assertThat(createdQuiz.createdBy.userId).isEqualTo(testQuiz.createdBy.userId)
+        assertThat(createdQuiz.name).isEqualTo(testQuiz.name)
     }
 
     @Test
     fun `should create a new question`() {
         val quiz = createTestQuiz()
 
-        val question = quizRepository.createQuestion(quiz.toDomain(), "Who is the president of the United States?")
+        val testQuestion = Question(
+            questionId = UUID.randomUUID(),
+            text = "Who is the president of the United States?",
+        )
 
-        assertThat(question).isNotNull
-        assertThat(question.text).isEqualTo("Who is the president of the United States?")
+        val createdQuestion = quizRepository.createQuestion(quiz.toDomain(), testQuestion)
+
+        assertThat(createdQuestion).isNotNull
+        assertThat(createdQuestion.text).isEqualTo("Who is the president of the United States?")
     }
 
     @Test
     fun `should create a new option`() {
         val question = createTestQuestion()
 
-        val option = quizRepository.createOption(question.toDomain(), "Trump")
+        val testOption = Option(
+            optionId = UUID.randomUUID(),
+            text = "Trump",
+        )
+
+        val option = quizRepository.createOption(question.toDomain(), testOption)
 
         assertThat(option).isNotNull
         assertThat(option.text).isEqualTo("Trump")
@@ -154,46 +177,67 @@ class QuizRepositoryImplIntegrationTest {
     @Test
     fun `should update quiz`(){
         val quiz = createTestQuiz()
-        val updatedQuiz = quizRepository.updateQuiz(quiz.quizId, "Updated Quiz")
+
+        val testQuiz = Quiz(
+            quizId = quiz.quizId,
+            name = "Updated Quiz",
+            createdBy = quiz.createdBy.toDomain()
+        )
+
+        val updatedQuiz = quizRepository.updateQuiz(testQuiz)
         val foundQuiz = entityManager.find(QuizEntity::class.java, quiz.quizId)
 
         assertThat(foundQuiz).isNotNull
-        assertThat(foundQuiz?.quizId).isEqualTo(quiz.quizId)
-        assertThat(foundQuiz?.name).isEqualTo("Updated Quiz")
+        assertThat(foundQuiz.quizId).isEqualTo(testQuiz.quizId)
+        assertThat(foundQuiz.name).isEqualTo(testQuiz.name)
 
         assertThat(updatedQuiz).isNotNull
-        assertThat(updatedQuiz?.quizId).isEqualTo(quiz.quizId)
-        assertThat(updatedQuiz?.name).isEqualTo("Updated Quiz")
+        assertThat(updatedQuiz.quizId).isEqualTo(testQuiz.quizId)
+        assertThat(updatedQuiz.name).isEqualTo(testQuiz.name)
     }
 
     @Test
     fun `should update question`(){
         val question = createTestQuestion()
-        val updatedQuestion = quizRepository.updateQuestion(question.questionId, "Updated Question", null)
+
+        val testQuestion = Question(
+            questionId = question.questionId,
+            text = "Updated Question",
+            correctAnswer = null
+        )
+
+        val updatedQuestion = quizRepository.updateQuestion(testQuestion)
         val foundQuestion = entityManager.find(QuestionEntity::class.java, question.questionId)
 
         assertThat(foundQuestion).isNotNull
-        assertThat(foundQuestion?.questionId).isEqualTo(question.questionId)
-        assertThat(foundQuestion?.text).isEqualTo("Updated Question")
-        assertThat(foundQuestion?.correctAnswer).isEqualTo(null)
+        assertThat(foundQuestion.questionId).isEqualTo(testQuestion.questionId)
+        assertThat(foundQuestion.text).isEqualTo(testQuestion.text)
+        assertThat(foundQuestion.correctAnswer).isEqualTo(testQuestion.correctAnswer)
 
         assertThat(updatedQuestion).isNotNull
-        assertThat(updatedQuestion?.questionId).isEqualTo(question.questionId)
-        assertThat(updatedQuestion?.text).isEqualTo("Updated Question")
-        assertThat(updatedQuestion?.correctAnswer).isEqualTo(null)
+        assertThat(updatedQuestion.questionId).isEqualTo(testQuestion.questionId)
+        assertThat(updatedQuestion.text).isEqualTo(testQuestion.text)
+        assertThat(updatedQuestion.correctAnswer).isEqualTo(testQuestion.correctAnswer)
     }
 
     @Test
     fun `should update option`(){
         val option = createTestOption()
-        val updatedOption = quizRepository.updateOption(option.optionId, "Updated Option")
+
+        val testOption = Option(
+            optionId = option.optionId,
+            text = "Updated Option",
+        )
+
+
+        val updatedOption = quizRepository.updateOption(testOption)
         val foundOption = entityManager.find(OptionEntity::class.java, option.optionId)
 
         assertThat(foundOption).isNotNull
-        assertThat(foundOption?.text).isEqualTo("Updated Option")
+        assertThat(foundOption.text).isEqualTo(testOption.text)
 
         assertThat(updatedOption).isNotNull
-        assertThat(updatedOption?.text).isEqualTo("Updated Option")
+        assertThat(updatedOption.text).isEqualTo(testOption.text)
     }
 
     @Test
