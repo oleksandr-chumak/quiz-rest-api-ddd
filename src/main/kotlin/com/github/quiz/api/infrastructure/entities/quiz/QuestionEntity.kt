@@ -19,7 +19,7 @@ data class QuestionEntity(
     val options: MutableList<OptionEntity> = mutableListOf(),
 
     @OneToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "option_id", referencedColumnName = "question_id")
+    @JoinColumn(name = "option_id", referencedColumnName = "question_id", nullable = true)
     var correctAnswer: OptionEntity? = null,
 
     @Column(name = "quiz_id", nullable = false)

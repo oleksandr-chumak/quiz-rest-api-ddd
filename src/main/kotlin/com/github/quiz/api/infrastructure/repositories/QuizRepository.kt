@@ -21,9 +21,9 @@ interface QuizRepository {
 
     // update operations
 
-    fun updateQuiz(quizId: Long, name: String): Quiz
-    fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long? ): Question
-    fun updateOption(optionId: Long, text: String): Option
+    fun updateQuiz(quizId: Long, name: String): Boolean
+    fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long? ): Boolean
+    fun updateOption(optionId: Long, text: String): Boolean
 
     // delete operations
 

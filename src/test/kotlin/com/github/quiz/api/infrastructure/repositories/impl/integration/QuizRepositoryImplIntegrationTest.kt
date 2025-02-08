@@ -44,9 +44,7 @@ class QuizRepositoryImplIntegrationTest {
         return quiz;
     }
 
-    private fun createTestQuestion(): QuestionEntity {
-        val quiz = createTestQuiz()
-
+    private fun createTestQuestion(quiz: QuizEntity = createTestQuiz()): QuestionEntity {
         val question = QuestionEntity(
             text = "Who is the president of the United States?",
             options = mutableListOf(),
@@ -123,6 +121,49 @@ class QuizRepositoryImplIntegrationTest {
             .containsExactlyInAnyOrder(*quizzes.map { it.quizId }.toTypedArray())
     }
 
+    @Test
+    fun `should find questions associated with quizzes`(){
+        val quiz = createTestQuiz()
+        val questions = listOf(
+            createTestQuestion(quiz),
+            createTestQuestion(quiz),
+            createTestQuestion(quiz)
+        )
 
+        val foundQuestions = quizRepository.findQuestionsAssociatedWithQuiz(quiz.quizId)
+
+        assertThat(foundQuestions)
+            .isNotNull
+            .hasSize(3)
+            .extracting("questionId")
+            .containsExactlyInAnyOrder(*questions.map { it.questionId }.toTypedArray())
+    }
+
+    @Test
+    fun `should update quiz`(){
+        val quiz = createTestQuiz()
+
+        quizRepository.updateQuiz(quiz.quizId, "Updated Quiz")
+
+        val updatedQuiz = entityManager.find(QuizEntity::class.java, quiz.quizId)
+
+        assertThat(updatedQuiz).isNotNull
+        assertThat(updatedQuiz?.quizId).isEqualTo(quiz.quizId)
+        assertThat(updatedQuiz?.name).isEqualTo("Updated Quiz")
+    }
+
+    @Test
+    fun `should update question`(){
+        val question = createTestQuestion()
+
+        quizRepository.updateQuestion(question.questionId, "Updated Question", null)
+
+        val updatedQuestion = entityManager.find(QuestionEntity::class.java, question.questionId)
+
+        assertThat(updatedQuestion).isNotNull
+        assertThat(updatedQuestion?.questionId).isEqualTo(question.questionId)
+        assertThat(updatedQuestion?.text).isEqualTo("Updated Question")
+        assertThat(updatedQuestion?.correctAnswer).isEqualTo(null)
+    }
 
 }

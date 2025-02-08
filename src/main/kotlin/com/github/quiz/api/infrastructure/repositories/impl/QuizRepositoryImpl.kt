@@ -58,25 +58,29 @@ class QuizRepositoryImpl(
     }
 
     override fun findQuestionsAssociatedWithQuiz(quizId: Long): List<Question> {
-        TODO("Implement questions of questions associated with quiz")
+        val query = entityManager.createQuery(
+            "SELECT q FROM QuestionEntity q WHERE q.quizId = :quizId",
+            QuestionEntity::class.java
+        )
+        query.setParameter("quizId", quizId)
+        return query.resultList.map { it.toDomain() }
     }
 
-    override fun updateQuiz(quizId: Long, name: String): Quiz {
-        val quiz = entityManager.find(QuizEntity::class.java, quizId)
-            ?: throw IllegalArgumentException("Quiz not found with id: $quizId")
+    override fun updateQuiz(quizId: Long, name: String): Boolean {
+        val quiz = entityManager.find(QuizEntity::class.java, quizId) ?: return false
         quiz.name = name
-        return quiz.toDomain()
+        return true
     }
 
-    override fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long?): Question {
+    override fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long?): Boolean     {
+        val question = entityManager.find(QuestionEntity::class.java, questionId) ?: return false
+        question.text = text
+        question.correctAnswer = if(correctAnswerId == null) null else entityManager.getReference(OptionEntity::class.java, correctAnswerId)
+        return true
+    }
+
+    override fun updateOption(optionId: Long, text: String): Boolean {
         TODO("Implement questions of questions associated with quiz")
-    }
-
-    override fun updateOption(optionId: Long, text: String): Option {
-        val option = entityManager.find(OptionEntity::class.java, optionId)
-            ?: throw IllegalArgumentException("Option not found with id: $optionId")
-        option.text = text
-        return option.toDomain()
     }
 
     override fun deleteQuiz(quizId: Long) {
