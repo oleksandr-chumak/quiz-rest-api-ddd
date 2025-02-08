@@ -21,13 +21,13 @@ interface QuizRepository {
 
     // update operations
 
-    fun updateQuiz(quizId: Long, name: String): Boolean
-    fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long? ): Boolean
-    fun updateOption(optionId: Long, text: String): Boolean
+    fun updateQuiz(quizId: Long, name: String): Quiz?
+    fun updateQuestion(questionId: Long, text: String, correctAnswerId: Long? ): Question?
+    fun updateOption(optionId: Long, text: String): Option?
 
     // delete operations
 
-    fun deleteQuiz(quizId: Long)
-    fun deleteOption(optionId: Long)
-    fun deleteQuestion(questionId: Long)
+    fun deleteQuiz(quizId: Long): Boolean
+    fun deleteOption(optionId: Long): Boolean
+    fun deleteQuestion(questionId: Long): Boolean
 }

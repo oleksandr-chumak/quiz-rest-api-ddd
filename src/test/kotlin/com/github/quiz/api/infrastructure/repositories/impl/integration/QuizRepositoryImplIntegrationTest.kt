@@ -1,6 +1,7 @@
 package com.github.quiz.api.infrastructure.repositories.impl.integration
 
 import com.github.quiz.api.infrastructure.entities.UserEntity
+import com.github.quiz.api.infrastructure.entities.quiz.OptionEntity
 import com.github.quiz.api.infrastructure.entities.quiz.QuestionEntity
 import com.github.quiz.api.infrastructure.entities.quiz.QuizEntity
 import com.github.quiz.api.infrastructure.repositories.impl.QuizRepositoryImpl
@@ -41,7 +42,7 @@ class QuizRepositoryImplIntegrationTest {
         entityManager.persist(quiz)
         entityManager.flush()
 
-        return quiz;
+        return quiz
     }
 
     private fun createTestQuestion(quiz: QuizEntity = createTestQuiz()): QuestionEntity {
@@ -55,6 +56,17 @@ class QuizRepositoryImplIntegrationTest {
         entityManager.flush()
 
         return question
+    }
+
+    private fun createTestOption(question: QuestionEntity = createTestQuestion()): OptionEntity {
+        val option = OptionEntity(
+            text = "Test Option",
+            questionId = question.questionId
+        )
+        entityManager.persist(option)
+        entityManager.flush()
+
+        return option
     }
 
     @BeforeEach
@@ -142,10 +154,12 @@ class QuizRepositoryImplIntegrationTest {
     @Test
     fun `should update quiz`(){
         val quiz = createTestQuiz()
+        val updatedQuiz = quizRepository.updateQuiz(quiz.quizId, "Updated Quiz")
+        val foundQuiz = entityManager.find(QuizEntity::class.java, quiz.quizId)
 
-        quizRepository.updateQuiz(quiz.quizId, "Updated Quiz")
-
-        val updatedQuiz = entityManager.find(QuizEntity::class.java, quiz.quizId)
+        assertThat(foundQuiz).isNotNull
+        assertThat(foundQuiz?.quizId).isEqualTo(quiz.quizId)
+        assertThat(foundQuiz?.name).isEqualTo("Updated Quiz")
 
         assertThat(updatedQuiz).isNotNull
         assertThat(updatedQuiz?.quizId).isEqualTo(quiz.quizId)
@@ -155,10 +169,13 @@ class QuizRepositoryImplIntegrationTest {
     @Test
     fun `should update question`(){
         val question = createTestQuestion()
+        val updatedQuestion = quizRepository.updateQuestion(question.questionId, "Updated Question", null)
+        val foundQuestion = entityManager.find(QuestionEntity::class.java, question.questionId)
 
-        quizRepository.updateQuestion(question.questionId, "Updated Question", null)
-
-        val updatedQuestion = entityManager.find(QuestionEntity::class.java, question.questionId)
+        assertThat(foundQuestion).isNotNull
+        assertThat(foundQuestion?.questionId).isEqualTo(question.questionId)
+        assertThat(foundQuestion?.text).isEqualTo("Updated Question")
+        assertThat(foundQuestion?.correctAnswer).isEqualTo(null)
 
         assertThat(updatedQuestion).isNotNull
         assertThat(updatedQuestion?.questionId).isEqualTo(question.questionId)
@@ -166,4 +183,46 @@ class QuizRepositoryImplIntegrationTest {
         assertThat(updatedQuestion?.correctAnswer).isEqualTo(null)
     }
 
+    @Test
+    fun `should update option`(){
+        val option = createTestOption()
+        val updatedOption = quizRepository.updateOption(option.optionId, "Updated Option")
+        val foundOption = entityManager.find(OptionEntity::class.java, option.optionId)
+
+        assertThat(foundOption).isNotNull
+        assertThat(foundOption?.text).isEqualTo("Updated Option")
+
+        assertThat(updatedOption).isNotNull
+        assertThat(updatedOption?.text).isEqualTo("Updated Option")
+    }
+
+    @Test
+    fun `should delete quiz`(){
+        val quiz = createTestQuiz()
+        val res = quizRepository.deleteQuiz(quiz.quizId)
+        val foundQuiz = entityManager.find(QuizEntity::class.java, quiz.quizId)
+
+        assertThat(foundQuiz).isNull()
+        assertThat(res).isTrue()
+    }
+
+    @Test
+    fun `should delete question`(){
+        val question = createTestQuestion()
+        val res = quizRepository.deleteQuestion(question.questionId)
+        val foundQuestion = entityManager.find(QuestionEntity::class.java, question.questionId)
+
+        assertThat(foundQuestion).isNull()
+        assertThat(res).isTrue()
+    }
+
+    @Test
+    fun `should delete option`(){
+        val option = createTestOption()
+        val res = quizRepository.deleteOption(option.optionId)
+        val foundOption = entityManager.find(OptionEntity::class.java, option.optionId)
+
+        assertThat(foundOption).isNull()
+        assertThat(res).isTrue()
+    }
 }
