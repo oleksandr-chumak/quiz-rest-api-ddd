@@ -1,16 +1,15 @@
 package com.github.quiz.api.infrastructure.entities
 
-import com.github.quiz.api.domain.models.User
-import com.github.quiz.api.infrastructure.entities.quiz.QuizEntity
+import com.github.quiz.api.domain.aggregates.User
+import com.github.quiz.api.quiz.infrastracture.entities.QuizEntity
 import jakarta.persistence.*
-import java.util.UUID
 
 @Entity
 @Table(name = "users")
-class UserEntity (
+class UserEntity(
     @Id
     @Column(name = "user_id", columnDefinition = "UUID")
-    var userId: UUID,
+    var userId: Long,
 
     @OneToMany(
         mappedBy = "createdBy",
@@ -19,18 +18,4 @@ class UserEntity (
         fetch = FetchType.LAZY
     )
     var createdQuizzes: MutableList<QuizEntity> = mutableListOf()
-) {
-    fun toDomain(): User {
-        return User(
-            userId = userId,
-        )
-    }
-
-    companion object {
-        fun fromDomain(user: User): UserEntity {
-            return UserEntity(
-                userId = user.userId,
-            )
-        }
-    }
-}
+)
