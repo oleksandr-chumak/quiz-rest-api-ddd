@@ -122,7 +122,7 @@ class DomainQuizServiceTest {
         val newTitle = "Updated Title"
         val performedBy = UUID.randomUUID()
         val mockQuiz = mock<Quiz>()
-        val mockQuestion = mock<com.github.quiz.api.quiz.domain.models.Question>()
+        val mockQuestion = mock<Question>()
         whenever(repository.findQuizById(quizId)).thenReturn(mockQuiz)
         whenever(mockQuiz.changeQuestionTitle(questionId, newTitle, performedBy)).thenReturn(mockQuestion)
 
